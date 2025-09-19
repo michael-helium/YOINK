@@ -24,28 +24,23 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
+          # Removed lockfile cache because package-lock.json isn't committed
 
       - name: Install deps
         working-directory: client
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Build
         working-directory: client
         env:
-          # If you have a live Socket.IO server, set this in the repo
-          # as an Actions variable/secret and it will be injected here.
-          # VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
-          # or: VITE_SOCKET_URL: ${{ secrets.VITE_SOCKET_URL }}
-          #
-          # If not set, the client will use its default.
+          # Optional: set this in repo Settings → Actions → Variables if you host a live Socket.IO server
           VITE_SOCKET_URL: ${{ vars.VITE_SOCKET_URL }}
         run: npm run build
 
-      - name: Create 404.html for SPA routing
+      - name: Add SPA 404 (optional)
         working-directory: client/dist
-        run: cp index.html 404.html
+        run: |
+          if [ -f index.html ]; then cp index.html 404.html; fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
