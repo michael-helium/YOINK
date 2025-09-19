@@ -269,25 +269,95 @@ const tiles = useMemo(() => {
         <h1 className="text-2xl font-semibold">YOINK</h1>
         <p className="text-neutral-400 text-sm">Shared-pool speed word game</p>
 
-        {!connected && !offlineSim && (
-          <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-            <input
-              className="rounded-xl bg-neutral-800 px-3 py-2 outline-none"
-              placeholder="Room code"
-              value={room}
-              onChange={e => setRoom(e.target.value)}
-            />
-            <input
-              className="rounded-xl bg-neutral-800 px-3 py-2 outline-none"
-              placeholder="Your name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-            <button className="rounded-xl bg-indigo-500 px-3 py-2 font-semibold" onClick={connect}>
-              Join
-            </button>
-          </div>
-        )}
+        {connected && !offlineSim && (
+  <div className="mt-3 grid grid-cols-1 sm:grid-cols-5 gap-2 items-end">
+    <label className="text-xs text-neutral-400">
+      Round (s)
+      <input
+        type="number"
+        min={30}
+        max={600}
+        step={30}
+        className="w-full mt-1 rounded-lg bg-neutral-800 px-3 py-2 outline-none"
+        defaultValue={state?.settings.durationSec ?? 120}
+        onBlur={(e) =>
+          sockRef.current?.emit("settings:update", { durationSec: Number(e.target.value) })
+        }
+      />
+    </label>
+
+    <label className="text-xs text-neutral-400">
+      Min len
+      <select
+        className="w-full mt-1 rounded-lg bg-neutral-800 px-3 py-2 outline-none"
+        defaultValue={state?.settings.minLen ?? 3}
+        onChange={(e) =>
+          sockRef.current?.emit("settings:update", { minLen: Number(e.target.value) })
+        }
+      >
+        {[2, 3, 4, 5, 6].map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </label>
+
+    <label className="text-xs text-neutral-400">
+      Duplicates
+      <select
+        className="w-full mt-1 rounded-lg bg-neutral-800 px-3 py-2 outline-none"
+        defaultValue={state?.settings.uniqueWords ?? "allow_with_decay"}
+        onChange={(e) =>
+          sockRef.current?.emit("settings:update", { uniqueWords: e.target.value })
+        }
+      >
+        <option value="disallow">Disallow</option>
+        <option value="allow_no_penalty">Allow (no penalty)</option>
+        <option value="allow_with_decay">Allow (decay)</option>
+      </select>
+    </label>
+
+    <label className="text-xs text-neutral-400">
+      Decay
+      <select
+        className="w-full mt-1 rounded-lg bg-neutral-800 px-3 py-2 outline-none"
+        defaultValue={state?.settings.decayModel ?? "linear"}
+        onChange={(e) =>
+          sockRef.current?.emit("settings:update", { decayModel: e.target.value })
+        }
+      >
+        <option value="linear">Linear</option>
+        <option value="soft">Soft</option>
+        <option value="steep">Steep</option>
+      </select>
+    </label>
+
+    <label className="text-xs text-neutral-400">
+      Tiles
+      <input
+        type="number"
+        min={40}
+        max={200}
+        step={10}
+        className="w-full mt-1 rounded-lg bg-neutral-800 px-3 py-2 outline-none"
+        defaultValue={state?.settings.roundTiles ?? 100}
+        onBlur={(e) =>
+          sockRef.current?.emit("settings:update", { roundTiles: Number(e.target.value) })
+        }
+      />
+    </label>
+
+    <div className="sm:col-span-5 flex justify-end">
+      <button
+        className="mt-2 rounded-xl bg-indigo-500 px-4 py-2 font-semibold"
+        onClick={() => sockRef.current?.emit("game:start")}
+      >
+        Start new round
+      </button>
+    </div>
+  </div>
+)}
 
         {offlineSim && (
           <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
