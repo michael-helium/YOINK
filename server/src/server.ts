@@ -350,19 +350,39 @@ io.on("connection", (socket: Socket) => {
   let roomId: string | null = null;
   let playerId: string | null = null;
 
-  socket.on("lobby:join", ({ room, name }: { room: string; name: string }) => {
-    roomId = room;
-    playerId = socket.id;
+  // Anyone can update for now (no host role yet)
+  socket.on("settings:update", (partial: Partial<Settings>) => {
+    if (!roomId) return;
+    const r = rooms.get(roomId);
+    if (!r) return;
 
-    const r = ensureRoom(room);
-    r.players.set(socket.id, { id: socket.id, name: name?.slice(0, 16) || "Player", liveScore: 0, words: [] });
-    socket.join(room);
+    // sanitize a few
+    if (typeof partial.durationSec === "number") {
+      r.settings.durationSec = Math.max(30, Math.min(600, Math.round(partial.durationSec)));
+    }
+    if (typeof partial.minLen === "number") {
+      r.settings.minLen = Math.max(2, Math.min(6, Math.round(partial.minLen)));
+    }
+    if (partial.uniqueWords) r.settings.uniqueWords = partial.uniqueWords;
+    if (partial.decayModel) r.settings.decayModel = partial.decayModel;
+    if (typeof partial.roundTiles === "number") {
+      r.settings.roundTiles = Math.max(40, Math.min(200, Math.round(partial.roundTiles)));
+    }
 
-    // auto-start a round if not started
-    if (!r.started) startRound(r);
+    // reset surge for next round
+    r.settings.surgeAmount = 10;
 
-    io.to(room).emit("lobby:state", publicState(r));
+    io.to(roomId).emit("lobby:state", publicState(r));
   });
+
+  socket.on("game:start", () => {
+    if (!roomId) return;
+    const r = rooms.get(roomId);
+    if (!r) return;
+    startRound(r);
+    io.to(roomId).emit("lobby:state", publicState(r));
+  });
+
 
   socket.on("word:submit", (payload: { word: string }) => {
     if (!roomId || !playerId) return;
