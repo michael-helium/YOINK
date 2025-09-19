@@ -313,17 +313,24 @@ export default function App() {
       </div>
 
       {/* Pool */}
-      <section className="px-4">
-        <div className="grid grid-cols-8 gap-2">
-          {sortedPool.map(([ch, count]) => (
-            <div key={ch} className="rounded-2xl bg-neutral-900 p-2 flex flex-col items-center">
-              <div className="text-2xl font-bold">{ch === "_" ? "␣" : ch}</div>
-              <div className="text-xs text-neutral-400">x{count}</div>
-              <div className="text-xs mt-1">{POINTS[ch] ?? 0} pts</div>
-            </div>
-          ))}
+<section className="px-4">
+  <div className="grid grid-cols-8 gap-2">
+    {sortedPool.flatMap(([ch, count]) =>
+      Array.from({ length: count }, (_, i) => (
+        <div
+          key={`${ch}-${i}`}
+          className="relative aspect-square rounded-xl bg-neutral-900 flex items-center justify-center text-2xl font-bold"
+        >
+          {ch === "_" ? "␣" : ch}
+          <span className="absolute bottom-1 right-1 text-[0.6rem] font-semibold text-neutral-400">
+            {POINTS[ch] ?? 0}
+          </span>
         </div>
-      </section>
+      ))
+    )}
+  </div>
+</section>
+
 
       {/* Input */}
       <section className="px-4 mt-auto pb-3">
