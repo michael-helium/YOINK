@@ -238,17 +238,22 @@ export default function App() {
   }
 
   // UI helpers
-  const sortedPool = useMemo(() => {
-    const serverPool = state?.pool;
-    const p = offlineSim ? pool : (serverPool || {});
-    const entries = Object.entries(p).filter(([, c]) => c > 0);
-    entries.sort((a,b)=>{
-      if (a[0]==="_" && b[0] !== "_") return 1;
-      if (b[0]==="_" && a[0] !== "_") return -1;
-      return b[1]-a[1] || a[0].localeCompare(b[0]);
-    });
-    return entries;
-  }, [offlineSim, pool, state?.pool]);
+// Build a flat array of individual tiles from the pool, then shuffle it.
+// This removes grouping by letter and makes the board look random.
+const tiles = useMemo(() => {
+  const src = offlineSim ? pool : (state?.pool || {});
+  const arr: string[] = [];
+  for (const [ch, count] of Object.entries(src)) {
+    for (let i = 0; i < (count ?? 0); i++) arr.push(ch);
+  }
+  // Fisher–Yates shuffle
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}, [offlineSim, pool, state?.pool]);
+
 
   const tilesText = offlineSim
     ? `${revealed}/${roundTiles}`
