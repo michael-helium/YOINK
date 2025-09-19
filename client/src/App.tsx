@@ -319,23 +319,24 @@ const tiles = useMemo(() => {
 
       {/* Pool */}
 <section className="px-4">
-  <div className="grid grid-cols-8 gap-2">
-    {sortedPool.flatMap(([ch, count]) =>
-      Array.from({ length: count }, (_, i) => (
-        <div
-          key={`${ch}-${i}`}
-          className="relative aspect-square rounded-xl bg-neutral-900 flex items-center justify-center text-2xl font-bold"
-        >
-          {ch === "_" ? "␣" : ch}
-          <span className="absolute bottom-1 right-1 text-[0.6rem] font-semibold text-neutral-400">
-            {POINTS[ch] ?? 0}
-          </span>
-        </div>
-      ))
-    )}
+  {/* Auto-filling grid: min tile size ~56px, grows if there's room */}
+  <div
+    className="grid gap-2"
+    style={{ gridTemplateColumns: "repeat(auto-fill, minmax(56px, 1fr))" }}
+  >
+    {tiles.map((ch, i) => (
+      <div
+        key={`${ch}-${i}`}
+        className="relative aspect-square rounded-lg bg-neutral-900 flex items-center justify-center text-2xl font-bold"
+      >
+        {ch === "_" ? "␣" : ch}
+        <span className="absolute bottom-1 right-1 text-[0.6rem] font-semibold text-neutral-400">
+          {POINTS[ch] ?? 0}
+        </span>
+      </div>
+    ))}
   </div>
 </section>
-
 
       {/* Input */}
       <section className="px-4 mt-auto pb-3">
